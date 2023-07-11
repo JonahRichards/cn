@@ -1,3 +1,5 @@
+# from __future__ import annotations
+
 import glob
 import os
 import numpy as np
@@ -87,13 +89,48 @@ def make_gif(image_directory):
     animation_object.save('animation.gif', fps=frames_per_second, writer='ffmpeg')
 
 
-def make_graphs():
-    # Iterate through the dataframes of each time point
-    for tp in range(FROM_INDEX, TO_INDEX):
-        tp = 6153
+class Node:
+    t = None
+    r = None
+    b = None
+    l = None
 
+    def get_cluster(self, visited):
+        new_adj = [n for n in [self.t, self.r, self.b, self.l] if n not in visited]
+        visited += new_adj
+        for n in new_adj:
+            visited += n.get_cluster(visited)
+        return visited
+
+
+class Graph:
+    nodes = [[Node() for i in range(RESOLUTION)] for j in range(RESOLUTION)]
+    edges = set()
+
+
+def make_graphs():
+    # Initialize empty graph with no clusters
+    graph = Graph()
+
+    # Iterate through the dataframes of each time point
+    for tp in range(6153, TO_INDEX):
         frame_path = f"Time Frames\\256_{tp}.csv"
         df = pd.read_csv(frame_path)
+
+        for i in reversed(range(1, RESOLUTION)):
+            for j in reversed(range(1, RESOLUTION)):
+                n = graph.nodes[i][j]
+                t = graph.nodes[i-1][j] #if j != RESOLUTION else None
+                l = graph.nodes[i][j-1] #if j != RESOLUTION else None
+
+                nv = df.iloc[i, j]
+                tv = df.iloc[i-1, j]
+                lv = df.iloc[i, j-1]
+
+                if abs((nv - tv) / nv) <= TOL:
+                    n.adj_n.add(t)
+                    n.adj_n.add(t)
+
 
         # Hash dictionary of attributes to each node by int name
         nodes: dict[int, dict] = {k: {} for k in range(RESOLUTION**2)}
