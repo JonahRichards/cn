@@ -10,6 +10,8 @@ TO_INDEX = 7000
 
 RESOLUTION = 256
 
+SCALE = 8
+
 TOL = 0.01
 
 PROCESSED_DIR = "Time Frames\\"
